@@ -2,57 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+    --background: 220 20% 97%;
+    --foreground: 224 71% 4%;
 
-    --card: 222 47% 8%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71% 4%;
 
-    --popover: 222 47% 8%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71% 4%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 238 84% 67%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 224 71% 4%;
 
-    --muted: 217 33% 12%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 187 92% 50%;
-    --accent-foreground: 222 47% 6%;
+    --accent: 238 84% 67%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 17%;
-    --input: 217 33% 17%;
-    --ring: 217 91% 60%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 238 84% 67%;
 
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(187 92% 50%) 100%);
-    --gradient-hero: linear-gradient(135deg, hsl(222 47% 8%) 0%, hsl(217 33% 12%) 50%, hsl(222 47% 6%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(217 33% 12% / 0.5) 0%, hsl(222 47% 8% / 0.8) 100%);
-    --glass-bg: hsl(217 33% 12% / 0.6);
-    --glass-border: hsl(217 33% 25% / 0.3);
-    --glow-primary: 0 0 60px hsl(217 91% 60% / 0.3);
-    --glow-accent: 0 0 40px hsl(187 92% 50% / 0.2);
+    /* Custom email portal tokens */
+    --email-sidebar: 224 71% 4%;
+    --email-sidebar-foreground: 220 20% 97%;
+    --email-sidebar-muted: 220 9% 46%;
+    --email-sidebar-hover: 224 50% 10%;
+    --email-sidebar-active: 238 84% 67%;
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 33% 17%;
-    --sidebar-ring: 217 91% 60%;
+    --email-list-hover: 220 14% 96%;
+    --email-unread: 238 84% 67%;
+    --email-selected: 238 84% 97%;
+
+    --shadow-soft: 0 1px 3px 0 hsl(220 13% 91% / 0.4);
+    --shadow-medium: 0 4px 6px -1px hsl(220 13% 91% / 0.4), 0 2px 4px -2px hsl(220 13% 91% / 0.4);
+
+    --sidebar-background: 224 71% 4%;
+    --sidebar-foreground: 220 20% 97%;
+    --sidebar-primary: 238 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 50% 10%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 224 50% 15%;
+    --sidebar-ring: 238 84% 67%;
+  }
+
+  .dark {
+    --background: 224 71% 4%;
+    --foreground: 220 20% 97%;
+
+    --card: 224 50% 8%;
+    --card-foreground: 220 20% 97%;
+
+    --popover: 224 50% 8%;
+    --popover-foreground: 220 20% 97%;
+
+    --primary: 238 84% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 224 50% 12%;
+    --secondary-foreground: 220 20% 97%;
+
+    --muted: 224 50% 12%;
+    --muted-foreground: 220 9% 60%;
+
+    --accent: 238 84% 67%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 224 50% 15%;
+    --input: 224 50% 15%;
+    --ring: 238 84% 67%;
+
+    --sidebar-background: 224 50% 8%;
+    --sidebar-foreground: 220 20% 97%;
+    --sidebar-primary: 238 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 50% 12%;
+    --sidebar-accent-foreground: 220 20% 97%;
+    --sidebar-border: 224 50% 15%;
+    --sidebar-ring: 238 84% 67%;
   }
 }
 
@@ -63,56 +107,88 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
 @layer utilities {
-  .gradient-text {
-    @apply bg-clip-text text-transparent;
-    background-image: var(--gradient-primary);
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
   }
 
-  .glass-card {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(12px);
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
   }
 
-  .glow-primary {
-    box-shadow: var(--glow-primary);
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
 
-  .glow-accent {
-    box-shadow: var(--glow-accent);
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
   }
 
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out forwards;
   }
 
-  .animate-pulse-slow {
-    animation: pulse-slow 4s ease-in-out infinite;
+  .animate-slide-in {
+    animation: slide-in 0.3s ease-out forwards;
   }
 
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient-shift 8s ease infinite;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-}
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-@keyframes pulse-slow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.8; }
-}
+  .bg-email-sidebar {
+    background-color: hsl(var(--email-sidebar));
+  }
 
-@keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  .text-email-sidebar-foreground {
+    color: hsl(var(--email-sidebar-foreground));
+  }
+
+  .text-email-sidebar-muted {
+    color: hsl(var(--email-sidebar-muted));
+  }
+
+  .bg-email-sidebar-hover {
+    background-color: hsl(var(--email-sidebar-hover));
+  }
+
+  .bg-email-sidebar-active {
+    background-color: hsl(var(--email-sidebar-active));
+  }
+
+  .bg-email-list-hover {
+    background-color: hsl(var(--email-list-hover));
+  }
+
+  .bg-email-unread {
+    background-color: hsl(var(--email-unread));
+  }
+
+  .bg-email-selected {
+    background-color: hsl(var(--email-selected));
+  }
 }
