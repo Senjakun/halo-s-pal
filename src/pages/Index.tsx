@@ -1,149 +1,93 @@
-import { useState, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
-import { Sidebar } from '@/components/email/Sidebar';
-import { EmailList } from '@/components/email/EmailList';
-import { EmailDetail } from '@/components/email/EmailDetail';
-import { SearchBar } from '@/components/email/SearchBar';
-import { ComposeModal } from '@/components/email/ComposeModal';
-import { useAuth } from '@/hooks/useAuth';
-import { useEmails, Email } from '@/hooks/useEmails';
-import { folders } from '@/data/mockEmails';
-import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Search, Database, Zap, Globe } from 'lucide-react';
 
 const Index = () => {
-  const { user, loading: authLoading } = useAuth();
-  const { emails, loading: emailsLoading, toggleStar, markAsRead, moveToFolder, deleteEmail, sendEmail } = useEmails();
+  const [email, setEmail] = useState('');
+  const navigate = useNavigate();
 
-  const [activeFolder, setActiveFolder] = useState('inbox');
-  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isComposeOpen, setIsComposeOpen] = useState(false);
-
-  const filteredEmails = useMemo(() => {
-    return emails
-      .filter(email => {
-        const matchesFolder = activeFolder === 'starred'
-          ? email.isStarred
-          : email.folder === activeFolder;
-
-        const matchesSearch = searchQuery === '' ||
-          email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          email.from.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          email.from.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          email.preview.toLowerCase().includes(searchQuery.toLowerCase());
-
-        return matchesFolder && matchesSearch;
-      })
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  }, [emails, activeFolder, searchQuery]);
-
-  const handleSelectEmail = async (email: Email) => {
-    setSelectedEmail(email);
-    if (!email.isRead) {
-      await markAsRead(email.id);
+  const handleCheckInbox = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (email.trim()) {
+      navigate(`/inbox/${encodeURIComponent(email.trim().toLowerCase())}`);
     }
   };
-
-  const handleToggleStar = async (emailId: string) => {
-    await toggleStar(emailId);
-    if (selectedEmail?.id === emailId) {
-      setSelectedEmail(prev => prev ? { ...prev, isStarred: !prev.isStarred } : null);
-    }
-  };
-
-  const handleArchive = async (emailId: string) => {
-    await moveToFolder(emailId, 'archive');
-    if (selectedEmail?.id === emailId) {
-      setSelectedEmail(null);
-    }
-  };
-
-  const handleDelete = async (emailId: string) => {
-    await deleteEmail(emailId);
-    if (selectedEmail?.id === emailId) {
-      setSelectedEmail(null);
-    }
-  };
-
-  const handleSendEmail = async (to: string, subject: string, body: string) => {
-    const result = await sendEmail(to, subject, body);
-    if (!result.error) {
-      setIsComposeOpen(false);
-    }
-  };
-
-  const foldersWithCounts = folders.map(folder => ({
-    ...folder,
-    count: folder.id === 'inbox'
-      ? emails.filter(e => e.folder === 'inbox' && !e.isRead).length
-      : emails.filter(e => e.folder === folder.id).length
-  }));
-
-  // Show loading while checking auth
-  if (authLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Redirect to auth if not logged in
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
-      <Sidebar
-        folders={foldersWithCounts}
-        activeFolder={activeFolder}
-        onFolderChange={(folder) => {
-          setActiveFolder(folder);
-          setSelectedEmail(null);
-        }}
-        onCompose={() => setIsComposeOpen(true)}
-        userEmail={user.email || ''}
-        userName={user.user_metadata?.display_name || user.email?.split('@')[0] || 'User'}
-      />
-
-      <div className="flex-1 flex flex-col border-l border-border">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-        />
-
-        <div className="flex-1 flex overflow-hidden">
-          <div className="w-96 border-r border-border flex flex-col">
-            {emailsLoading ? (
-              <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <EmailList
-                emails={filteredEmails}
-                selectedEmailId={selectedEmail?.id || null}
-                onSelectEmail={handleSelectEmail}
-                onToggleStar={handleToggleStar}
-              />
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-primary/20 via-background to-primary/10 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Mail className="h-7 w-7 text-primary" />
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-bold text-primary">Temporary Mail</CardTitle>
+          <CardDescription className="text-base">Cek inbox email kamu dengan mudah</CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Status Box */}
+          <div className="bg-accent/50 rounded-lg p-4">
+            <div className="flex items-center justify-center gap-2 text-sm font-medium text-accent-foreground mb-3">
+              <Database className="h-4 w-4" />
+              <span>Optimized Service</span>
+            </div>
+            <ul className="space-y-1.5 text-sm text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <span className="text-primary">•</span>
+                <span>File-based storage</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-primary">•</span>
+                <span>Auto cleanup system</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-primary">•</span>
+                <span>Memory-efficient processing</span>
+              </li>
+            </ul>
           </div>
 
-          <EmailDetail
-            email={selectedEmail}
-            onBack={() => setSelectedEmail(null)}
-            onToggleStar={handleToggleStar}
-            onArchive={handleArchive}
-            onDelete={handleDelete}
-          />
-        </div>
-      </div>
+          {/* Email Input Form */}
+          <form onSubmit={handleCheckInbox} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Masukkan Alamat Email:
+              </label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="yourmail@domain.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 text-base"
+                required
+              />
+            </div>
+            
+            <Button type="submit" className="w-full h-12 text-base gap-2">
+              <Search className="h-4 w-4" />
+              Cek Inbox
+            </Button>
+          </form>
 
-      <ComposeModal
-        isOpen={isComposeOpen}
-        onClose={() => setIsComposeOpen(false)}
-        onSend={handleSendEmail}
-      />
+          {/* Features */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Zap className="h-4 w-4 text-yellow-500" />
+              <span>Fast & Light</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Globe className="h-4 w-4 text-blue-500" />
+              <span>Multi Domain</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

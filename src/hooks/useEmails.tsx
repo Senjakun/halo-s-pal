@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export interface Email {
@@ -61,22 +60,23 @@ function transformEmail(dbEmail: DbEmail): Email {
   };
 }
 
-export function useEmails() {
-  const { user } = useAuth();
+export function useEmailsByAddress(emailAddress: string) {
   const [emails, setEmails] = useState<Email[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchEmails = useCallback(async () => {
-    if (!user) {
+    if (!emailAddress) {
       setEmails([]);
       setLoading(false);
       return;
     }
 
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('emails')
         .select('*')
+        .eq('to_email', emailAddress.toLowerCase())
         .order('timestamp', { ascending: false });
 
       if (error) throw error;
@@ -88,7 +88,7 @@ export function useEmails() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [emailAddress]);
 
   useEffect(() => {
     fetchEmails();
@@ -174,51 +174,13 @@ export function useEmails() {
     }
   };
 
-  const sendEmail = async (to: string, subject: string, body: string) => {
-    if (!user) {
-      toast.error('Please sign in to send emails');
-      return { error: 'Not authenticated' };
-    }
-
-    try {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('display_name, email')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const { error } = await supabase.from('emails').insert({
-        user_id: user.id,
-        from_name: profile?.display_name || user.email?.split('@')[0] || 'Me',
-        from_email: profile?.email || user.email || '',
-        to_email: to,
-        subject,
-        body,
-        preview: body.substring(0, 100),
-        folder: 'sent',
-        is_read: true,
-      });
-
-      if (error) throw error;
-
-      toast.success('Email sent');
-      fetchEmails();
-      return { error: null };
-    } catch (error) {
-      console.error('Error sending email:', error);
-      toast.error('Failed to send email');
-      return { error: (error as Error).message };
-    }
-  };
-
   return {
     emails,
     loading,
-    fetchEmails,
+    refetch: fetchEmails,
     toggleStar,
     markAsRead,
     moveToFolder,
     deleteEmail,
-    sendEmail,
   };
 }
