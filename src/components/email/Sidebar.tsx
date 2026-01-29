@@ -1,8 +1,6 @@
-import { Inbox, Send, FileText, Archive, Trash2, Plus, Star, Tag, LogOut } from 'lucide-react';
+import { Inbox, Send, FileText, Archive, Trash2, Star, Tag, ArrowLeft, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const iconMap = {
   inbox: Inbox,
@@ -16,38 +14,34 @@ interface SidebarProps {
   folders: Array<{ id: string; name: string; icon: string; count: number }>;
   activeFolder: string;
   onFolderChange: (folderId: string) => void;
-  onCompose: () => void;
   userEmail: string;
-  userName: string;
+  onBack: () => void;
+  onRefresh: () => void;
 }
 
-export function Sidebar({ folders, activeFolder, onFolderChange, onCompose, userEmail, userName }: SidebarProps) {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-
-  const handleSignOut = async () => {
-    await signOut();
-    toast.success('Signed out successfully');
-    navigate('/auth');
-  };
-
-  const initials = userName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+export function Sidebar({ folders, activeFolder, onFolderChange, userEmail, onBack, onRefresh }: SidebarProps) {
+  const emailDomain = userEmail.split('@')[1] || '';
+  const emailName = userEmail.split('@')[0] || '';
 
   return (
     <aside className="w-64 bg-email-sidebar text-email-sidebar-foreground flex flex-col h-full">
-      <div className="p-4">
-        <button
-          onClick={onCompose}
-          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg px-4 py-3 font-medium transition-colors"
+      <div className="p-4 space-y-3">
+        <Button
+          variant="ghost"
+          onClick={onBack}
+          className="w-full justify-start gap-2 text-email-sidebar-foreground/80 hover:text-email-sidebar-foreground hover:bg-email-sidebar-hover"
         >
-          <Plus className="h-4 w-4" />
-          Compose
-        </button>
+          <ArrowLeft className="h-4 w-4" />
+          Kembali
+        </Button>
+        
+        <Button
+          onClick={onRefresh}
+          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </Button>
       </div>
 
       <nav className="flex-1 px-3">
@@ -110,19 +104,12 @@ export function Sidebar({ folders, activeFolder, onFolderChange, onCompose, user
       <div className="p-4 border-t border-email-sidebar-hover">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center text-white font-medium text-sm">
-            {initials}
+            {emailName[0]?.toUpperCase() || '?'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{userName}</p>
-            <p className="text-xs text-email-sidebar-muted truncate">{userEmail}</p>
+            <p className="text-sm font-medium truncate">{emailName}</p>
+            <p className="text-xs text-email-sidebar-muted truncate">@{emailDomain}</p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="p-2 text-email-sidebar-muted hover:text-email-sidebar-foreground hover:bg-email-sidebar-hover rounded-lg transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </aside>

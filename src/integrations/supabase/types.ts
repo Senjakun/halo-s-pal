@@ -68,7 +68,7 @@ export type Database = {
           timestamp: string
           to_email: string
           to_name: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           body: string
@@ -85,7 +85,7 @@ export type Database = {
           timestamp?: string
           to_email: string
           to_name?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           body?: string
@@ -102,7 +102,7 @@ export type Database = {
           timestamp?: string
           to_email?: string
           to_name?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
