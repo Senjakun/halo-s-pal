@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Email {
@@ -32,11 +31,14 @@ interface DbEmail {
   body: string;
   preview: string | null;
   timestamp: string;
-  is_read: boolean | null;
-  is_starred: boolean | null;
+  is_read: boolean;
+  is_starred: boolean;
   folder: string;
-  labels: string[] | null;
+  labels: string[];
 }
+
+// API base URL - uses relative path for same-origin requests
+const API_BASE = '/api';
 
 function transformEmail(dbEmail: DbEmail): Email {
   return {
@@ -53,8 +55,8 @@ function transformEmail(dbEmail: DbEmail): Email {
     body: dbEmail.body,
     preview: dbEmail.preview || dbEmail.body.substring(0, 100),
     timestamp: new Date(dbEmail.timestamp),
-    isRead: dbEmail.is_read ?? false,
-    isStarred: dbEmail.is_starred ?? false,
+    isRead: dbEmail.is_read,
+    isStarred: dbEmail.is_starred,
     folder: dbEmail.folder,
     labels: dbEmail.labels || [],
   };
@@ -73,15 +75,14 @@ export function useEmailsByAddress(emailAddress: string) {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('emails')
-        .select('*')
-        .eq('to_email', emailAddress.toLowerCase())
-        .order('timestamp', { ascending: false });
+      const response = await fetch(`${API_BASE}/emails?to_email=${encodeURIComponent(emailAddress.toLowerCase())}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch emails');
+      }
 
-      if (error) throw error;
-
-      setEmails((data as DbEmail[]).map(transformEmail));
+      const data: DbEmail[] = await response.json();
+      setEmails(data.map(transformEmail));
     } catch (error) {
       console.error('Error fetching emails:', error);
       toast.error('Failed to fetch emails');
@@ -99,12 +100,13 @@ export function useEmailsByAddress(emailAddress: string) {
     if (!email) return;
 
     try {
-      const { error } = await supabase
-        .from('emails')
-        .update({ is_starred: !email.isStarred })
-        .eq('id', emailId);
+      const response = await fetch(`${API_BASE}/emails/${emailId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_starred: !email.isStarred })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update');
 
       setEmails(prev =>
         prev.map(e =>
@@ -119,12 +121,13 @@ export function useEmailsByAddress(emailAddress: string) {
 
   const markAsRead = async (emailId: string) => {
     try {
-      const { error } = await supabase
-        .from('emails')
-        .update({ is_read: true })
-        .eq('id', emailId);
+      const response = await fetch(`${API_BASE}/emails/${emailId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_read: true })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update');
 
       setEmails(prev =>
         prev.map(e =>
@@ -138,12 +141,13 @@ export function useEmailsByAddress(emailAddress: string) {
 
   const moveToFolder = async (emailId: string, folder: string) => {
     try {
-      const { error } = await supabase
-        .from('emails')
-        .update({ folder })
-        .eq('id', emailId);
+      const response = await fetch(`${API_BASE}/emails/${emailId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ folder })
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to update');
 
       setEmails(prev =>
         prev.map(e =>
@@ -159,12 +163,11 @@ export function useEmailsByAddress(emailAddress: string) {
 
   const deleteEmail = async (emailId: string) => {
     try {
-      const { error } = await supabase
-        .from('emails')
-        .delete()
-        .eq('id', emailId);
+      const response = await fetch(`${API_BASE}/emails/${emailId}`, {
+        method: 'DELETE'
+      });
 
-      if (error) throw error;
+      if (!response.ok) throw new Error('Failed to delete');
 
       setEmails(prev => prev.filter(e => e.id !== emailId));
       toast.success('Email deleted');
