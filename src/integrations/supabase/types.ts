@@ -14,7 +14,134 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      email_attachments: {
+        Row: {
+          created_at: string
+          email_id: string
+          file_size: number | null
+          file_url: string
+          filename: string
+          id: string
+          mime_type: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+          file_size?: number | null
+          file_url: string
+          filename: string
+          id?: string
+          mime_type?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+          file_size?: number | null
+          file_url?: string
+          filename?: string
+          id?: string
+          mime_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      emails: {
+        Row: {
+          body: string
+          created_at: string
+          folder: string
+          from_email: string
+          from_name: string
+          id: string
+          is_read: boolean | null
+          is_starred: boolean | null
+          labels: string[] | null
+          preview: string | null
+          subject: string
+          timestamp: string
+          to_email: string
+          to_name: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          folder?: string
+          from_email: string
+          from_name: string
+          id?: string
+          is_read?: boolean | null
+          is_starred?: boolean | null
+          labels?: string[] | null
+          preview?: string | null
+          subject: string
+          timestamp?: string
+          to_email: string
+          to_name?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          folder?: string
+          from_email?: string
+          from_name?: string
+          id?: string
+          is_read?: boolean | null
+          is_starred?: boolean | null
+          labels?: string[] | null
+          preview?: string | null
+          subject?: string
+          timestamp?: string
+          to_email?: string
+          to_name?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          email: string
+          id: string
+          totp_enabled: boolean | null
+          totp_secret: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email: string
+          id?: string
+          totp_enabled?: boolean | null
+          totp_secret?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          email?: string
+          id?: string
+          totp_enabled?: boolean | null
+          totp_secret?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
