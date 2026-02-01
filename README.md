@@ -13,9 +13,63 @@ Portal email sementara yang ringan dan efisien untuk VPS dengan RAM rendah (1GB)
 
 ## 📋 Requirements
 
-- Node.js 18+ 
 - VPS dengan minimal 1GB RAM
-- Domain yang pointing ke IP VPS
+- Domain yang pointing ke IP VPS (lihat [DNS Setup](#-dns-setup))
+
+## 🌐 DNS Setup
+
+Sebelum install, pastikan domain sudah diarahkan ke IP VPS.
+
+### Cloudflare
+
+1. Login ke [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Pilih domain kamu
+3. Klik **DNS** di sidebar
+4. Klik **Add Record**
+5. Tambahkan record berikut:
+
+| Type | Name | Content | Proxy Status |
+|------|------|---------|--------------|
+| A | `@` | `IP_VPS_KAMU` | DNS only (grey cloud) |
+| A | `www` | `IP_VPS_KAMU` | DNS only (grey cloud) |
+
+> ⚠️ **Penting**: Matikan proxy (orange cloud → grey cloud) agar SSL dari Certbot bisa bekerja. Atau gunakan Cloudflare SSL jika ingin pakai proxy.
+
+### Namecheap
+
+1. Login ke [Namecheap](https://www.namecheap.com)
+2. Klik **Domain List** → pilih domain → **Manage**
+3. Klik tab **Advanced DNS**
+4. Tambahkan record:
+
+| Type | Host | Value | TTL |
+|------|------|-------|-----|
+| A Record | `@` | `IP_VPS_KAMU` | Automatic |
+| A Record | `www` | `IP_VPS_KAMU` | Automatic |
+
+### Niagahoster / Domain Indonesia
+
+1. Login ke member area
+2. Pilih domain → **Kelola Domain**
+3. Klik **DNS / Nameserver**
+4. Tambahkan A Record:
+   - **Host**: `@` (atau kosong)
+   - **Points to**: `IP_VPS_KAMU`
+   - Tambahkan juga untuk `www`
+
+### Verifikasi DNS
+
+Tunggu 5-30 menit, lalu cek apakah DNS sudah propagasi:
+
+```bash
+# Di terminal/command prompt
+ping yourdomain.com
+
+# Atau gunakan online tool
+# https://dnschecker.org
+```
+
+Jika sudah menunjukkan IP VPS kamu, lanjut ke instalasi.
 
 ## 🚀 Quick Install (VPS)
 
