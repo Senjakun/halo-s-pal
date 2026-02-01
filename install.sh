@@ -9,7 +9,9 @@ set -e
 # Prevent any interactive apt/dpkg prompts (critical for curl|bash installs)
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
+export NEEDRESTART_SUSPEND=1
 export APT_LISTCHANGES_FRONTEND=none
+export TERM=dumb
 
 echo "╔═══════════════════════════════════════════════════╗"
 echo "║     📧 Temporary Mail - Quick Install             ║"
@@ -73,6 +75,7 @@ configure_needrestart_noninteractive() {
     # Prefer conf.d override (won't clobber distro config)
     mkdir -p /etc/needrestart/conf.d
     cat > /etc/needrestart/conf.d/99-temp-mail-noninteractive.conf <<'EOF'
+$nrconf{ui} = 'none';
 $nrconf{restart} = 'a';
 $nrconf{kernelhints} = -1;
 EOF
@@ -87,17 +90,17 @@ APT_INSTALL_ARGS=(
 
 apt_update() {
     wait_for_apt_lock
-    apt-get -yq update
+    apt-get -yq update </dev/null
 }
 
 apt_install() {
     wait_for_apt_lock
-    apt-get "${APT_INSTALL_ARGS[@]}" install "$@"
+    apt-get "${APT_INSTALL_ARGS[@]}" install "$@" </dev/null
 }
 
 apt_remove() {
     wait_for_apt_lock
-    apt-get "${APT_INSTALL_ARGS[@]}" remove "$@"
+    apt-get "${APT_INSTALL_ARGS[@]}" remove "$@" </dev/null
 }
 
 echo -e "${YELLOW}[1/8] Preparing system...${NC}"
