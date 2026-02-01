@@ -6,6 +6,11 @@
 
 set -e
 
+# Prevent any interactive apt/dpkg prompts (critical for curl|bash installs)
+export DEBIAN_FRONTEND=noninteractive
+export NEEDRESTART_MODE=a
+export APT_LISTCHANGES_FRONTEND=none
+
 echo "╔═══════════════════════════════════════════════════╗"
 echo "║     📧 Temporary Mail - Quick Install             ║"
 echo "╚═══════════════════════════════════════════════════╝"
@@ -63,21 +68,54 @@ wait_for_apt_lock() {
     fi
 }
 
+# Configure needrestart to never open the “Daemons using outdated libraries” dialog
+configure_needrestart_noninteractive() {
+    # Prefer conf.d override (won't clobber distro config)
+    mkdir -p /etc/needrestart/conf.d
+    cat > /etc/needrestart/conf.d/99-temp-mail-noninteractive.conf <<'EOF'
+$nrconf{restart} = 'a';
+$nrconf{kernelhints} = -1;
+EOF
+}
+
+APT_INSTALL_ARGS=(
+    -yq
+    -o Dpkg::Options::=--force-confdef
+    -o Dpkg::Options::=--force-confold
+    -o DPkg::Lock::Timeout=120
+)
+
+apt_update() {
+    wait_for_apt_lock
+    apt-get -yq update
+}
+
+apt_install() {
+    wait_for_apt_lock
+    apt-get "${APT_INSTALL_ARGS[@]}" install "$@"
+}
+
+apt_remove() {
+    wait_for_apt_lock
+    apt-get "${APT_INSTALL_ARGS[@]}" remove "$@"
+}
+
 echo -e "${YELLOW}[1/8] Preparing system...${NC}"
+configure_needrestart_noninteractive
 wait_for_apt_lock
-apt update
+apt_update
 wait_for_apt_lock
-apt install -y curl git
+apt_install curl git
 
 echo -e "${YELLOW}[2/8] Installing Node.js 20...${NC}"
 # Remove old nodejs if exists
-apt remove -y nodejs npm || true
+apt_remove nodejs npm || true
 
 # Install Node.js 20 from NodeSource
 wait_for_apt_lock
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 wait_for_apt_lock
-apt install -y nodejs
+apt_install nodejs
 
 # Verify Node.js version
 NODE_VERSION=$(node -v 2>/dev/null || echo "none")
@@ -95,7 +133,7 @@ fi
 
 echo -e "${YELLOW}[3/8] Installing Nginx...${NC}"
 wait_for_apt_lock
-apt install -y nginx
+apt_install nginx
 
 # Install PM2
 echo -e "${YELLOW}[4/8] Installing PM2...${NC}"
