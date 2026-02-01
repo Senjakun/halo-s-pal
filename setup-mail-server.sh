@@ -108,50 +108,94 @@ echo -e "${YELLOW}[3/5] Creating mail forwarder script...${NC}"
 cat > /usr/local/bin/mail-to-api.sh << 'SCRIPT'
 #!/bin/bash
 
+LOG="/var/log/mail-to-api.log"
+
 # Read email from stdin
 EMAIL_CONTENT=$(cat)
 
-# Parse headers
-FROM_LINE=$(echo "$EMAIL_CONTENT" | grep -m1 "^From:" | sed 's/^From: //')
-TO_LINE=$(echo "$EMAIL_CONTENT" | grep -m1 "^To:" | sed 's/^To: //')
-SUBJECT_LINE=$(echo "$EMAIL_CONTENT" | grep -m1 "^Subject:" | sed 's/^Subject: //')
+echo "========== $(date) ==========" >> $LOG
 
-# Extract email addresses
-FROM_EMAIL=$(echo "$FROM_LINE" | grep -oP '[\w\.\-]+@[\w\.\-]+' | head -1)
-FROM_NAME=$(echo "$FROM_LINE" | sed 's/<.*>//g' | sed 's/^[ \t]*//;s/[ \t]*$//' | head -c 100)
-TO_EMAIL=$(echo "$TO_LINE" | grep -oP '[\w\.\-]+@[\w\.\-]+' | head -1)
+# Parse headers using formail or manual parsing
+FROM_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^From:" | sed 's/^[Ff]rom: //')
+TO_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^To:" | sed 's/^[Tt]o: //')
+DELIVERED_TO=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^Delivered-To:" | sed 's/^[Dd]elivered-[Tt]o: //')
+SUBJECT_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^Subject:" | sed 's/^[Ss]ubject: //')
 
-# Get body (everything after first blank line)
-BODY=$(echo "$EMAIL_CONTENT" | sed -n '/^$/,$p' | tail -n +2)
+# Extract email addresses using grep
+FROM_EMAIL=$(echo "$FROM_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
+TO_EMAIL=$(echo "$TO_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
 
-# Escape for JSON
-escape_json() {
-    echo "$1" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))'
-}
+# Fallback to Delivered-To header if To is empty or catchall
+if [ -z "$TO_EMAIL" ] || [[ "$TO_EMAIL" == *"catchall"* ]]; then
+    TO_EMAIL=$(echo "$DELIVERED_TO" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
+fi
 
-FROM_NAME_JSON=$(escape_json "$FROM_NAME")
-FROM_EMAIL_JSON=$(escape_json "$FROM_EMAIL")
-TO_EMAIL_JSON=$(escape_json "$TO_EMAIL")
-SUBJECT_JSON=$(escape_json "$SUBJECT_LINE")
-BODY_JSON=$(escape_json "$BODY")
-PREVIEW_JSON=$(escape_json "$(echo "$BODY" | head -c 150)")
+# Extract from name (text before email)
+FROM_NAME=$(echo "$FROM_HEADER" | sed 's/<.*>//g' | sed 's/^[ \t]*//;s/[ \t]*$//' | head -c 100)
+if [ -z "$FROM_NAME" ]; then
+    FROM_NAME="$FROM_EMAIL"
+fi
+
+# Get body (everything after first blank line, decode if needed)
+BODY=$(echo "$EMAIL_CONTENT" | sed -n '/^$/,$p' | tail -n +2 | head -c 50000)
+
+# Clean up body - remove HTML if it looks like HTML
+if echo "$BODY" | grep -q "<html"; then
+    # Extract text from HTML (basic)
+    BODY=$(echo "$BODY" | sed 's/<[^>]*>//g' | sed 's/&nbsp;/ /g' | sed 's/&amp;/\&/g')
+fi
+
+echo "From: $FROM_EMAIL" >> $LOG
+echo "To: $TO_EMAIL" >> $LOG
+echo "Subject: $SUBJECT_HEADER" >> $LOG
+
+# Validate required fields
+if [ -z "$FROM_EMAIL" ] || [ -z "$TO_EMAIL" ]; then
+    echo "ERROR: Missing from or to email" >> $LOG
+    exit 0
+fi
+
+# Create JSON payload using jq if available, otherwise use python
+if command -v jq &> /dev/null; then
+    PAYLOAD=$(jq -n \
+        --arg fn "$FROM_NAME" \
+        --arg fe "$FROM_EMAIL" \
+        --arg te "$TO_EMAIL" \
+        --arg su "$SUBJECT_HEADER" \
+        --arg bo "$BODY" \
+        --arg pr "$(echo "$BODY" | head -c 150)" \
+        '{from_name: $fn, from_email: $fe, to_email: $te, subject: $su, body: $bo, preview: $pr}')
+else
+    # Escape for JSON using python
+    PAYLOAD=$(python3 << PYTHON
+import json
+print(json.dumps({
+    "from_name": """$FROM_NAME""",
+    "from_email": "$FROM_EMAIL",
+    "to_email": "$TO_EMAIL",
+    "subject": """$SUBJECT_HEADER""",
+    "body": """$BODY"""[:50000],
+    "preview": """$BODY"""[:150]
+}))
+PYTHON
+)
+fi
 
 # Send to API
-curl -s -X POST http://127.0.0.1:3001/api/emails \
+RESPONSE=$(curl -s -X POST http://127.0.0.1:3001/api/emails \
   -H "Content-Type: application/json" \
-  -d "{
-    \"from_name\": $FROM_NAME_JSON,
-    \"from_email\": $FROM_EMAIL_JSON,
-    \"to_email\": $TO_EMAIL_JSON,
-    \"subject\": $SUBJECT_JSON,
-    \"body\": $BODY_JSON,
-    \"preview\": $PREVIEW_JSON
-  }" >> /var/log/mail-to-api.log 2>&1
+  -d "$PAYLOAD" 2>&1)
+
+echo "API Response: $RESPONSE" >> $LOG
+echo "" >> $LOG
 
 exit 0
 SCRIPT
 
 chmod +x /usr/local/bin/mail-to-api.sh
+
+# Install jq for better JSON handling
+apt-get install -yq jq || true
 
 # Create log file
 touch /var/log/mail-to-api.log
