@@ -124,7 +124,7 @@ echo ""
 echo -e "${BLUE}🔧 Step 2/6: Cloning repository...${NC}"
 cd /opt
 rm -rf sena-mail
-git clone https://github.com/Senjakun/your-portal-mail.git sena-mail
+git clone https://github.com/Senjakun/halo-s-pal.git sena-mail
 cd sena-mail/vps-mail-server
 
 echo -e "${GREEN}✓ Repository cloned${NC}"
