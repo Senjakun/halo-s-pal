@@ -3,6 +3,7 @@
 # ============================================
 # SENA MAIL SERVER - UNINSTALLER
 # Membersihkan instalasi sebelumnya
+# Usage: curl ... | sudo bash -s -- -y
 # ============================================
 
 set -e
@@ -13,6 +14,14 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
+
+# Check for -y flag (auto-confirm)
+AUTO_CONFIRM=false
+while getopts "y" opt; do
+  case $opt in
+    y) AUTO_CONFIRM=true ;;
+  esac
+done
 
 echo -e "${RED}"
 echo "╔═══════════════════════════════════════════╗"
@@ -30,10 +39,16 @@ echo -e "${YELLOW}⚠️  This will remove:${NC}"
 echo "   - Sena Mail systemd service"
 echo "   - Application files in /opt/sena-mail"
 echo "   - Nginx configuration"
-echo "   - Email database (optional)"
+echo "   - Email database"
 echo ""
 
-read -p "Continue with uninstall? (y/n): " CONFIRM
+# Skip confirmation if -y flag or running non-interactively
+if [ "$AUTO_CONFIRM" = false ] && [ -t 0 ]; then
+  read -p "Continue with uninstall? (y/n): " CONFIRM
+else
+  CONFIRM="y"
+  echo -e "${CYAN}Running in non-interactive mode...${NC}"
+fi
 if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
   echo -e "${RED}Uninstall cancelled.${NC}"
   exit 0
