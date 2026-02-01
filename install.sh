@@ -28,26 +28,82 @@ INSTALL_DIR="/opt/temp-mail"
 DATA_DIR="/var/lib/temp-mail"
 USER="tempmail"
 
-echo -e "${YELLOW}[1/7] Installing dependencies...${NC}"
-apt update
-apt install -y curl git nginx
+# Function to wait for apt locks
+wait_for_apt_lock() {
+    echo -e "${YELLOW}Checking for apt locks...${NC}"
+    local max_wait=120
+    local waited=0
+    
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1; do
+        if [ $waited -eq 0 ]; then
+            echo -e "${YELLOW}Waiting for other apt processes to finish...${NC}"
+        fi
+        sleep 5
+        waited=$((waited + 5))
+        if [ $waited -ge $max_wait ]; then
+            echo -e "${RED}Timeout waiting for apt lock. Forcing release...${NC}"
+            # Kill any stuck apt/dpkg processes
+            pkill -9 apt || true
+            pkill -9 dpkg || true
+            sleep 2
+            # Remove lock files
+            rm -f /var/lib/dpkg/lock-frontend
+            rm -f /var/lib/dpkg/lock
+            rm -f /var/cache/apt/archives/lock
+            dpkg --configure -a || true
+            break
+        fi
+        echo -e "${YELLOW}Still waiting... ($waited seconds)${NC}"
+    done
+    
+    if [ $waited -gt 0 ] && [ $waited -lt $max_wait ]; then
+        echo -e "${GREEN}Apt locks released!${NC}"
+    fi
+}
 
-# Install Node.js 20
-if ! command -v node &> /dev/null; then
-    echo -e "${YELLOW}Installing Node.js 20...${NC}"
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-    apt install -y nodejs
+echo -e "${YELLOW}[1/8] Preparing system...${NC}"
+wait_for_apt_lock
+apt update
+wait_for_apt_lock
+apt install -y curl git
+
+echo -e "${YELLOW}[2/8] Installing Node.js 20...${NC}"
+# Remove old nodejs if exists
+apt remove -y nodejs npm || true
+
+# Install Node.js 20 from NodeSource
+wait_for_apt_lock
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+wait_for_apt_lock
+apt install -y nodejs
+
+# Verify Node.js version
+NODE_VERSION=$(node -v 2>/dev/null || echo "none")
+echo -e "${GREEN}Node.js version: $NODE_VERSION${NC}"
+
+if [[ ! "$NODE_VERSION" =~ ^v20 ]]; then
+    echo -e "${RED}Failed to install Node.js 20. Current version: $NODE_VERSION${NC}"
+    echo -e "${YELLOW}Trying alternative method...${NC}"
+    # Alternative: use n version manager
+    npm install -g n || true
+    n 20 || true
+    NODE_VERSION=$(node -v 2>/dev/null || echo "none")
+    echo -e "${GREEN}Node.js version after retry: $NODE_VERSION${NC}"
 fi
 
-echo -e "${GREEN}Node.js version: $(node -v)${NC}"
+echo -e "${YELLOW}[3/8] Installing Nginx...${NC}"
+wait_for_apt_lock
+apt install -y nginx
 
 # Install PM2
+echo -e "${YELLOW}[4/8] Installing PM2...${NC}"
 if ! command -v pm2 &> /dev/null; then
-    echo -e "${YELLOW}Installing PM2...${NC}"
     npm install -g pm2
 fi
 
-echo -e "${YELLOW}[2/7] Creating user and directories...${NC}"
+echo -e "${YELLOW}[5/8] Creating user and directories...${NC}"
 # Create user if not exists
 if ! id "$USER" &>/dev/null; then
     useradd -r -s /bin/false $USER
@@ -58,17 +114,17 @@ mkdir -p $INSTALL_DIR
 mkdir -p $DATA_DIR
 chown -R $USER:$USER $DATA_DIR
 
-echo -e "${YELLOW}[3/7] Cloning repository...${NC}"
+echo -e "${YELLOW}[6/8] Cloning repository...${NC}"
 cd /tmp
 rm -rf halo-s-pal
 git clone https://github.com/Senjakun/halo-s-pal.git
 cd halo-s-pal
 
-echo -e "${YELLOW}[4/7] Building frontend...${NC}"
+echo -e "${YELLOW}[7/8] Building frontend...${NC}"
 npm install
 npm run build
 
-echo -e "${YELLOW}[5/7] Setting up backend...${NC}"
+echo -e "${YELLOW}[8/8] Setting up backend...${NC}"
 # Copy files
 cp -r server/* $INSTALL_DIR/
 cp -r dist $INSTALL_DIR/
@@ -79,7 +135,7 @@ npm install --production
 # Set permissions
 chown -R $USER:$USER $INSTALL_DIR
 
-echo -e "${YELLOW}[6/7] Setting up PM2...${NC}"
+echo -e "${YELLOW}Setting up PM2...${NC}"
 # Create ecosystem file
 cat > $INSTALL_DIR/ecosystem.config.js << EOF
 module.exports = {
@@ -111,7 +167,7 @@ pm2 start $INSTALL_DIR/ecosystem.config.js
 pm2 save
 pm2 startup
 
-echo -e "${YELLOW}[7/7] Setting up Nginx...${NC}"
+echo -e "${YELLOW}Setting up Nginx...${NC}"
 # Create nginx config
 cat > /etc/nginx/sites-available/temp-mail << 'EOF'
 server {
