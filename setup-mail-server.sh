@@ -78,7 +78,10 @@ local_transport = error:local mail delivery is disabled
 # Virtual mailbox - catch all emails
 virtual_alias_maps = regexp:/etc/postfix/virtual_regexp
 virtual_mailbox_domains = regexp:/etc/postfix/virtual_domains_regexp
-virtual_transport = pipe:flags=Rq user=nobody argv=/usr/local/bin/mail-to-api.sh
+virtual_transport = mailtoapi
+
+# Ensure single-recipient delivery so ${original_recipient} is reliable
+mailtoapi_destination_recipient_limit = 1
 
 # Queue settings
 maximal_queue_lifetime = 1d
@@ -110,24 +113,48 @@ cat > /usr/local/bin/mail-to-api.sh << 'SCRIPT'
 
 LOG="/var/log/mail-to-api.log"
 
+# Postfix can pass these as argv macros (preferred, because it includes the real recipient)
+ORIGINAL_RECIPIENT_RAW="${1:-}"
+RECIPIENT_RAW="${2:-}"
+
+sanitize_addr() {
+    # remove CR, surrounding <>, and trim
+    echo "$1" | tr -d '\r' | sed 's/[<>]//g' | sed 's/^[ \t]*//;s/[ \t]*$//'
+}
+
 # Read email from stdin
 EMAIL_CONTENT=$(cat)
 
 echo "========== $(date) ==========" >> $LOG
 
-# Parse headers using formail or manual parsing
+# Parse headers (fallback only)
 FROM_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^From:" | sed 's/^[Ff]rom: //')
 TO_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^To:" | sed 's/^[Tt]o: //')
 DELIVERED_TO=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^Delivered-To:" | sed 's/^[Dd]elivered-[Tt]o: //')
 SUBJECT_HEADER=$(echo "$EMAIL_CONTENT" | grep -m1 -i "^Subject:" | sed 's/^[Ss]ubject: //')
 
 # Extract email addresses using grep
-FROM_EMAIL=$(echo "$FROM_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
-TO_EMAIL=$(echo "$TO_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
+FROM_EMAIL=$(sanitize_addr "$(echo "$FROM_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)")
 
-# Fallback to Delivered-To header if To is empty or catchall
-if [ -z "$TO_EMAIL" ] || [[ "$TO_EMAIL" == *"catchall"* ]]; then
-    TO_EMAIL=$(echo "$DELIVERED_TO" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)
+# Prefer ORIGINAL_RECIPIENT if provided by Postfix
+TO_EMAIL=""
+if [ -n "$ORIGINAL_RECIPIENT_RAW" ]; then
+    TO_EMAIL=$(sanitize_addr "$ORIGINAL_RECIPIENT_RAW")
+fi
+
+# Fallback to recipient arg
+if [ -z "$TO_EMAIL" ] && [ -n "$RECIPIENT_RAW" ]; then
+    TO_EMAIL=$(sanitize_addr "$RECIPIENT_RAW")
+fi
+
+# Fallback to headers
+if [ -z "$TO_EMAIL" ]; then
+    TO_EMAIL=$(sanitize_addr "$(echo "$TO_HEADER" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)")
+fi
+
+# Fallback to Delivered-To header if still empty
+if [ -z "$TO_EMAIL" ]; then
+    TO_EMAIL=$(sanitize_addr "$(echo "$DELIVERED_TO" | grep -oE '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}' | head -1)")
 fi
 
 # Extract from name (text before email)
@@ -145,6 +172,8 @@ if echo "$BODY" | grep -q "<html"; then
     BODY=$(echo "$BODY" | sed 's/<[^>]*>//g' | sed 's/&nbsp;/ /g' | sed 's/&amp;/\&/g')
 fi
 
+echo "Args original_recipient: $ORIGINAL_RECIPIENT_RAW" >> $LOG
+echo "Args recipient: $RECIPIENT_RAW" >> $LOG
 echo "From: $FROM_EMAIL" >> $LOG
 echo "To: $TO_EMAIL" >> $LOG
 echo "Subject: $SUBJECT_HEADER" >> $LOG
@@ -204,13 +233,20 @@ chmod 666 /var/log/mail-to-api.log
 # ============= Configure Master.cf =============
 echo -e "${YELLOW}[4/5] Configuring mail transport...${NC}"
 
-# Add pipe transport if not exists
-if ! grep -q "mail-to-api" /etc/postfix/master.cf; then
+# Remove older custom config (from previous script versions)
+sed -i \
+  -e '/^# Forward to API$/d' \
+  -e '/^pipe[[:space:]]\+unix[[:space:]]\+-[[:space:]]\+n[[:space:]]\+n[[:space:]]\+-[[:space:]]\+10[[:space:]]\+pipe$/d' \
+  -e '/^[[:space:]]\+flags=Rq user=nobody argv=\/usr\/local\/bin\/mail-to-api\.sh$/d' \
+  /etc/postfix/master.cf
+
+# Add mailtoapi transport if not exists
+if ! grep -q "^mailtoapi[[:space:]]\+unix" /etc/postfix/master.cf; then
     cat >> /etc/postfix/master.cf << 'EOF'
 
-# Forward to API
-pipe      unix  -       n       n       -       10      pipe
-  flags=Rq user=nobody argv=/usr/local/bin/mail-to-api.sh
+# Forward to API (pass original recipient so inbox shows the real address)
+mailtoapi  unix  -       n       n       -       10      pipe
+  flags=Rq user=nobody argv=/usr/local/bin/mail-to-api.sh ${original_recipient} ${recipient}
 EOF
 fi
 
