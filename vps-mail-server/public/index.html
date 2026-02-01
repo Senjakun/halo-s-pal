@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ Sena Hub - Your All-in-One Service Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwindcss.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#6366f1',
+            secondary: '#a855f7',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .gradient-bg {
+      background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+    }
+    .email-list::-webkit-scrollbar { width: 6px; }
+    .email-list::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 3px; }
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.5);
+    }
+    .copy-btn:active { transform: scale(0.95); }
+  </style>
+</head>
+<body class="gradient-bg min-h-screen">
+  <!-- Main App Container -->
+  <div id="app">
+
+    <!-- Landing Page (Service Hub) -->
+    <div id="landingPage" class="min-h-screen flex flex-col items-center justify-center p-4">
+      <!-- Main Card -->
+      <div class="glass-card rounded-3xl shadow-2xl p-8 w-full max-w-md animate-float">
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <h1 class="text-3xl font-extrabold text-gray-800">✨ Sena Hub</h1>
+          <p class="text-gray-500 mt-2">Your all-in-one service hub</p>
+        </div>
+
+        <!-- Status Card -->
+        <div class="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span class="text-green-700 font-semibold text-sm">All Systems Operational</span>
+          </div>
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="flex items-center gap-2 text-green-600">
+              <span>✓</span> <span>Email Service</span>
+            </div>
+            <div class="flex items-center gap-2 text-green-600">
+              <span>✓</span> <span>Auto Cleanup</span>
+            </div>
+            <div class="flex items-center gap-2 text-green-600">
+              <span>✓</span> <span>Fast Delivery</span>
+            </div>
+            <div class="flex items-center gap-2 text-green-600">
+              <span>✓</span> <span>No Login Required</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <button onclick="showPage('emailPage')" class="btn-primary text-white font-semibold py-4 px-4 rounded-xl flex flex-col items-center gap-2">
+            <span class="text-2xl">📧</span>
+            <span>Temporary Mail</span>
+          </button>
+          <button onclick="showPage('totpPage')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-4 rounded-xl flex flex-col items-center gap-2 transition-all">
+            <span class="text-2xl">🔐</span>
+            <span>2FA / TOTP</span>
+          </button>
+          <button onclick="showPage('passwordPage')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-4 rounded-xl flex flex-col items-center gap-2 transition-all">
+            <span class="text-2xl">🔑</span>
+            <span>Password Gen</span>
+          </button>
+          <button onclick="showPage('addressPage')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-4 px-4 rounded-xl flex flex-col items-center gap-2 transition-all">
+            <span class="text-2xl">📍</span>
+            <span>Address Gen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="mt-8 text-center">
+        <div class="inline-block bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full text-sm font-medium">
+          Made with 💜 by Sena
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Page -->
+    <div id="emailPage" class="min-h-screen flex flex-col items-center p-4 hidden">
+      <!-- Email Search Card -->
+      <div class="glass-card rounded-3xl shadow-2xl p-8 w-full max-w-md mt-8 mb-4">
+        <!-- Header -->
+        <div class="text-center mb-6">
+          <h1 class="text-3xl font-extrabold text-gray-800">📧 Temporary Mail</h1>
+          <p class="text-gray-500 mt-2">Check any inbox instantly</p>
+        </div>
+
+        <!-- Status Info -->
+        <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-6">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-indigo-600 font-semibold text-sm">⚡ Optimized Service</span>
+          </div>
+          <div class="text-xs text-indigo-500 space-y-1">
+            <p>• SQLite database storage</p>
+            <p>• Auto cleanup after 7 days</p>
+            <p>• Real-time email checking</p>
+          </div>
+        </div>
+
+        <!-- Email Input -->
+        <div class="space-y-4">
+          <input
+            type="email"
+            id="emailInput"
+            placeholder="Enter email@domain.com"
+            class="w-full px-5 py-4 bg-white border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-lg"
+            onkeypress="if(event.key === 'Enter') loadEmails()"
+          >
+          <button
+            onclick="loadEmails()"
+            class="btn-primary w-full text-white font-bold py-4 px-6 rounded-xl text-lg flex items-center justify-center gap-2"
+          >
+            <span>🔍</span> Cek Inbox
+          </button>
+          <button
+            onclick="showPage('landingPage')"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <span>←</span> Kembali
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Card -->
+      <div id="stats" class="glass-card rounded-2xl shadow-lg px-6 py-3 text-sm text-gray-600 mb-4">
+        Loading stats...
+      </div>
+
+      <!-- Email List Container -->
+      <div id="emailListContainer" class="w-full max-w-2xl hidden">
+        <div class="glass-card rounded-3xl shadow-2xl overflow-hidden">
+          <!-- Inbox Header -->
+          <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="font-bold text-lg">📬 Inbox</h2>
+                <p id="currentEmailDisplay" class="text-indigo-100 text-sm"></p>
+              </div>
+              <button onclick="fetchEmails()" class="bg-white/20 hover:bg-white/30 px-3 py-1 rounded-lg text-sm transition-all">
+                🔄 Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Email List -->
+          <div id="emailList" class="max-h-96 overflow-y-auto email-list">
+            <div class="p-8 text-center text-gray-500">
+              <span class="text-4xl mb-4 block">📭</span>
+              <p>Masukkan alamat email untuk melihat inbox</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email Detail Modal -->
+      <div id="emailDetailModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="glass-card rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
+          <div id="emailDetailContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOTP / 2FA Page -->
+    <div id="totpPage" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+      <div class="glass-card rounded-3xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+          <h1 class="text-3xl font-extrabold text-gray-800">🔐 2FA / TOTP</h1>
+          <p class="text-gray-500 mt-2">Generate TOTP codes</p>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Secret Key (Base32)</label>
+            <input
+              type="text"
+              id="totpSecret"
+              placeholder="Enter your TOTP secret key"
+              class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              oninput="generateTOTP()"
+            >
+          </div>
+
+          <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-6 text-center">
+            <p class="text-sm text-indigo-600 mb-2">Current Code</p>
+            <div class="flex items-center justify-center gap-2">
+              <span id="totpCode" class="text-4xl font-mono font-bold text-gray-800 tracking-widest">------</span>
+              <button onclick="copyToClipboard(document.getElementById('totpCode').textContent)" class="copy-btn p-2 hover:bg-indigo-100 rounded-lg transition-all">
+                📋
+              </button>
+            </div>
+            <div class="mt-3 flex items-center justify-center gap-2">
+              <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div id="totpProgress" class="h-full bg-indigo-500 transition-all duration-1000"></div>
+              </div>
+              <span id="totpTimer" class="text-sm text-gray-500">30s</span>
+            </div>
+          </div>
+
+          <button
+            onclick="showPage('landingPage')"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <span>←</span> Kembali
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Generator Page -->
+    <div id="passwordPage" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+      <div class="glass-card rounded-3xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+          <h1 class="text-3xl font-extrabold text-gray-800">🔑 Password Gen</h1>
+          <p class="text-gray-500 mt-2">Generate secure passwords</p>
+        </div>
+
+        <div class="space-y-4">
+          <div class="bg-gray-100 rounded-xl p-4 flex items-center gap-2">
+            <input
+              type="text"
+              id="generatedPassword"
+              readonly
+              class="flex-1 bg-transparent text-gray-800 font-mono text-lg focus:outline-none"
+              value="Click Generate!"
+            >
+            <button onclick="copyToClipboard(document.getElementById('generatedPassword').value)" class="copy-btn p-2 hover:bg-gray-200 rounded-lg transition-all">
+              📋
+            </button>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Length: <span id="lengthDisplay">16</span></label>
+            <input
+              type="range"
+              id="passwordLength"
+              min="8" max="64" value="16"
+              class="w-full accent-indigo-500"
+              oninput="document.getElementById('lengthDisplay').textContent = this.value"
+            >
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="includeUpper" checked class="accent-indigo-500"> Uppercase
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="includeLower" checked class="accent-indigo-500"> Lowercase
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="includeNumbers" checked class="accent-indigo-500"> Numbers
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700">
+              <input type="checkbox" id="includeSymbols" checked class="accent-indigo-500"> Symbols
+            </label>
+          </div>
+
+          <button
+            onclick="generatePassword()"
+            class="btn-primary w-full text-white font-bold py-4 px-6 rounded-xl text-lg"
+          >
+            🎲 Generate Password
+          </button>
+
+          <button
+            onclick="showPage('landingPage')"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <span>←</span> Kembali
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Address Generator Page -->
+    <div id="addressPage" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+      <div class="glass-card rounded-3xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-6">
+          <h1 class="text-3xl font-extrabold text-gray-800">📍 Address Gen</h1>
+          <p class="text-gray-500 mt-2">Generate random US addresses</p>
+        </div>
+
+        <div class="space-y-4">
+          <div id="generatedAddress" class="bg-gray-100 rounded-xl p-4 space-y-2">
+            <p class="text-gray-500 text-center">Click Generate to create an address</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">State (optional)</label>
+            <select id="stateSelect" class="w-full px-4 py-3 bg-white border-2 border-gray-200 rounded-xl text-gray-800 focus:outline-none focus:border-primary">
+              <option value="">Random State</option>
+              <option value="CA">California</option>
+              <option value="NY">New York</option>
+              <option value="TX">Texas</option>
+              <option value="FL">Florida</option>
+              <option value="WA">Washington</option>
+              <option value="IL">Illinois</option>
+              <option value="PA">Pennsylvania</option>
+              <option value="OH">Ohio</option>
+              <option value="GA">Georgia</option>
+              <option value="NC">North Carolina</option>
+            </select>
+          </div>
+
+          <button
+            onclick="generateAddress()"
+            class="btn-primary w-full text-white font-bold py-4 px-6 rounded-xl text-lg"
+          >
+            🏠 Generate Address
+          </button>
+
+          <button
+            onclick="copyAddress()"
+            class="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700 font-semibold py-3 px-6 rounded-xl transition-all"
+          >
+            📋 Copy Address
+          </button>
+
+          <button
+            onclick="showPage('landingPage')"
+            class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2"
+          >
+            <span>←</span> Kembali
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let currentEmail = '';
+    let autoRefreshInterval = null;
+    let totpInterval = null;
+
+    // Load stats on page load
+    loadStats();
+
+    // Page Navigation
+    function showPage(pageId) {
+      // Hide all pages
+      document.querySelectorAll('#app > div').forEach(page => page.classList.add('hidden'));
+      // Show selected page
+      document.getElementById(pageId).classList.remove('hidden');
+
+      // Clear intervals
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+      if (totpInterval) clearInterval(totpInterval);
+
+      // Start TOTP timer if on TOTP page
+      if (pageId === 'totpPage') {
+        startTOTPTimer();
+      }
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch('/api/stats');
+        const stats = await res.json();
+        document.getElementById('stats').innerHTML = `
+          📊 Total: <strong>${stats.total_emails}</strong> emails |
+          📬 <strong>${stats.unique_addresses}</strong> addresses
+        `;
+      } catch (e) {
+        document.getElementById('stats').innerHTML = '📊 Server ready';
+      }
+    }
+
+    async function loadEmails() {
+      const input = document.getElementById('emailInput');
+      const email = input.value.trim().toLowerCase();
+
+      if (!email || !email.includes('@')) {
+        alert('Masukkan alamat email yang valid');
+        return;
+      }
+
+      currentEmail = email;
+      document.getElementById('currentEmailDisplay').textContent = email;
+      document.getElementById('emailListContainer').classList.remove('hidden');
+
+      // Clear previous auto-refresh
+      if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+
+      await fetchEmails();
+
+      // Auto-refresh setiap 10 detik
+      autoRefreshInterval = setInterval(fetchEmails, 10000);
+    }
+
+    async function fetchEmails() {
+      if (!currentEmail) return;
+
+      try {
+        const res = await fetch(`/api/emails/${encodeURIComponent(currentEmail)}`);
+        const emails = await res.json();
+
+        const listEl = document.getElementById('emailList');
+
+        if (emails.length === 0) {
+          listEl.innerHTML = `
+            <div class="p-8 text-center text-gray-500">
+              <span class="text-4xl mb-4 block animate-pulse">📭</span>
+              <p class="font-medium">Inbox kosong</p>
+              <p class="text-sm mt-1">Menunggu email masuk...</p>
+              <p class="text-xs mt-3 text-gray-400">🔄 Auto-refresh aktif</p>
+            </div>
+          `;
+          return;
+        }
+
+        listEl.innerHTML = emails.map(email => `
+          <div
+            onclick="viewEmail(${email.id})"
+            class="p-4 border-b border-gray-100 cursor-pointer hover:bg-indigo-50 transition-colors ${email.is_read ? 'bg-gray-50' : 'bg-white'}"
+          >
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                  ${(email.from_name || email.from_email).charAt(0).toUpperCase()}
+                </div>
+                <span class="font-semibold text-sm text-gray-800 ${email.is_read ? 'font-normal' : ''}">
+                  ${email.from_name || email.from_email}
+                </span>
+              </div>
+              <span class="text-xs text-gray-400">${formatDate(email.received_at)}</span>
+            </div>
+            <p class="text-sm text-gray-700 font-medium truncate ml-10 ${email.is_read ? 'font-normal text-gray-500' : ''}">
+              ${email.subject}
+            </p>
+            <p class="text-xs text-gray-400 truncate mt-1 ml-10">
+              ${email.preview || ''}
+            </p>
+          </div>
+        `).join('');
+
+      } catch (e) {
+        console.error('Error fetching emails:', e);
+      }
+    }
+
+    async function viewEmail(id) {
+      try {
+        const res = await fetch(`/api/email/${id}`);
+        const email = await res.json();
+
+        const modal = document.getElementById('emailDetailModal');
+        const content = document.getElementById('emailDetailContent');
+
+        content.innerHTML = `
+          <!-- Header -->
+          <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-6">
+            <div class="flex items-center justify-between mb-4">
+              <button onclick="closeEmailDetail()" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all">
+                ← Back
+              </button>
+              <button
+                onclick="deleteEmail(${email.id})"
+                class="bg-red-500/80 hover:bg-red-500 px-4 py-2 rounded-lg text-sm transition-all"
+              >
+                🗑️ Delete
+              </button>
+            </div>
+            <h2 class="text-xl font-bold">${email.subject}</h2>
+          </div>
+
+          <!-- Sender Info -->
+          <div class="p-4 border-b border-gray-100 flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-lg font-bold">
+              ${(email.from_name || email.from_email).charAt(0).toUpperCase()}
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800">${email.from_name || 'Unknown'}</p>
+              <p class="text-sm text-gray-500">${email.from_email}</p>
+            </div>
+            <div class="text-sm text-gray-400">
+              ${new Date(email.received_at).toLocaleString('id-ID')}
+            </div>
+          </div>
+
+          <!-- Body -->
+          <div class="p-6 max-h-96 overflow-auto">
+            ${email.body_html ?
+              `<iframe
+                srcdoc="${escapeHtml(email.body_html)}"
+                class="w-full min-h-64 border-0 bg-white rounded-lg"
+                sandbox="allow-same-origin"
+              ></iframe>` :
+              `<pre class="whitespace-pre-wrap text-gray-700 text-sm">${email.body_text || 'No content'}</pre>`
+            }
+          </div>
+
+          <!-- Attachments -->
+          ${email.attachments && email.attachments.length > 0 ? `
+            <div class="p-4 border-t border-gray-100 bg-gray-50">
+              <p class="text-sm text-gray-500 mb-2">📎 Attachments:</p>
+              <div class="flex flex-wrap gap-2">
+                ${email.attachments.map(a => `
+                  <span class="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm text-gray-600">
+                    ${a.filename} (${formatSize(a.size)})
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        `;
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+
+        // Refresh list to show read status
+        fetchEmails();
+
+      } catch (e) {
+        console.error('Error viewing email:', e);
+      }
+    }
+
+    function closeEmailDetail() {
+      const modal = document.getElementById('emailDetailModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function deleteEmail(id) {
+      if (!confirm('Hapus email ini?')) return;
+
+      try {
+        await fetch(`/api/email/${id}`, { method: 'DELETE' });
+        closeEmailDetail();
+        fetchEmails();
+      } catch (e) {
+        console.error('Error deleting email:', e);
+      }
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const diff = now - date;
+
+      if (diff < 60000) return 'Baru saja';
+      if (diff < 3600000) return `${Math.floor(diff/60000)}m`;
+      if (diff < 86400000) return `${Math.floor(diff/3600000)}h`;
+      return date.toLocaleDateString('id-ID');
+    }
+
+    function formatSize(bytes) {
+      if (!bytes) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(html) {
+      return html
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        // Visual feedback
+        const btn = event.target;
+        const original = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(() => btn.textContent = original, 1000);
+      });
+    }
+
+    // ==================== PASSWORD GENERATOR ====================
+    function generatePassword() {
+      const length = parseInt(document.getElementById('passwordLength').value);
+      const includeUpper = document.getElementById('includeUpper').checked;
+      const includeLower = document.getElementById('includeLower').checked;
+      const includeNumbers = document.getElementById('includeNumbers').checked;
+      const includeSymbols = document.getElementById('includeSymbols').checked;
+
+      let chars = '';
+      if (includeUpper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      if (includeLower) chars += 'abcdefghijklmnopqrstuvwxyz';
+      if (includeNumbers) chars += '0123456789';
+      if (includeSymbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+      if (!chars) {
+        alert('Pilih minimal satu jenis karakter!');
+        return;
+      }
+
+      let password = '';
+      const array = new Uint32Array(length);
+      crypto.getRandomValues(array);
+      for (let i = 0; i < length; i++) {
+        password += chars[array[i] % chars.length];
+      }
+
+      document.getElementById('generatedPassword').value = password;
+    }
+
+    // ==================== TOTP GENERATOR ====================
+    function base32ToBytes(base32) {
+      const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      base32 = base32.toUpperCase().replace(/[^A-Z2-7]/g, '');
+
+      let bits = '';
+      for (let i = 0; i < base32.length; i++) {
+        const val = alphabet.indexOf(base32[i]);
+        if (val === -1) continue;
+        bits += val.toString(2).padStart(5, '0');
+      }
+
+      const bytes = [];
+      for (let i = 0; i + 8 <= bits.length; i += 8) {
+        bytes.push(parseInt(bits.substr(i, 8), 2));
+      }
+      return new Uint8Array(bytes);
+    }
+
+    async function hmacSha1(key, message) {
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw', key, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+      );
+      const signature = await crypto.subtle.sign('HMAC', cryptoKey, message);
+      return new Uint8Array(signature);
+    }
+
+    async function generateTOTP() {
+      const secret = document.getElementById('totpSecret').value.trim();
+      if (!secret) {
+        document.getElementById('totpCode').textContent = '------';
+        return;
+      }
+
+      try {
+        const key = base32ToBytes(secret);
+        const time = Math.floor(Date.now() / 1000 / 30);
+
+        const timeBytes = new Uint8Array(8);
+        let t = time;
+        for (let i = 7; i >= 0; i--) {
+          timeBytes[i] = t & 0xff;
+          t = Math.floor(t / 256);
+        }
+
+        const hash = await hmacSha1(key, timeBytes);
+        const offset = hash[hash.length - 1] & 0x0f;
+        const code = (
+          ((hash[offset] & 0x7f) << 24) |
+          ((hash[offset + 1] & 0xff) << 16) |
+          ((hash[offset + 2] & 0xff) << 8) |
+          (hash[offset + 3] & 0xff)
+        ) % 1000000;
+
+        document.getElementById('totpCode').textContent = code.toString().padStart(6, '0');
+      } catch (e) {
+        document.getElementById('totpCode').textContent = 'ERROR';
+        console.error('TOTP Error:', e);
+      }
+    }
+
+    function startTOTPTimer() {
+      function updateTimer() {
+        const seconds = 30 - (Math.floor(Date.now() / 1000) % 30);
+        document.getElementById('totpTimer').textContent = seconds + 's';
+        document.getElementById('totpProgress').style.width = ((seconds / 30) * 100) + '%';
+
+        if (seconds === 30) {
+          generateTOTP();
+        }
+      }
+
+      updateTimer();
+      generateTOTP();
+      totpInterval = setInterval(updateTimer, 1000);
+    }
+
+    // ==================== ADDRESS GENERATOR ====================
+    const streetNames = ['Oak', 'Maple', 'Cedar', 'Pine', 'Elm', 'Washington', 'Lake', 'Hill', 'Park', 'Main', 'Church', 'High', 'Mill', 'River', 'Forest', 'Spring', 'Valley', 'Sunset', 'Highland', 'Meadow'];
+    const streetTypes = ['Street', 'Avenue', 'Boulevard', 'Drive', 'Lane', 'Road', 'Way', 'Court', 'Place', 'Circle'];
+    const cities = {
+      'CA': ['Los Angeles', 'San Francisco', 'San Diego', 'Sacramento', 'San Jose', 'Oakland', 'Fresno', 'Long Beach'],
+      'NY': ['New York', 'Buffalo', 'Rochester', 'Albany', 'Syracuse', 'Yonkers', 'Brooklyn', 'Queens'],
+      'TX': ['Houston', 'Dallas', 'Austin', 'San Antonio', 'Fort Worth', 'El Paso', 'Arlington', 'Plano'],
+      'FL': ['Miami', 'Orlando', 'Tampa', 'Jacksonville', 'Fort Lauderdale', 'St. Petersburg', 'Hialeah', 'Tallahassee'],
+      'WA': ['Seattle', 'Spokane', 'Tacoma', 'Vancouver', 'Bellevue', 'Everett', 'Kent', 'Renton'],
+      'IL': ['Chicago', 'Aurora', 'Naperville', 'Joliet', 'Rockford', 'Springfield', 'Peoria', 'Elgin'],
+      'PA': ['Philadelphia', 'Pittsburgh', 'Allentown', 'Erie', 'Reading', 'Scranton', 'Bethlehem', 'Lancaster'],
+      'OH': ['Columbus', 'Cleveland', 'Cincinnati', 'Toledo', 'Akron', 'Dayton', 'Parma', 'Canton'],
+      'GA': ['Atlanta', 'Augusta', 'Columbus', 'Savannah', 'Athens', 'Macon', 'Roswell', 'Albany'],
+      'NC': ['Charlotte', 'Raleigh', 'Greensboro', 'Durham', 'Winston-Salem', 'Fayetteville', 'Cary', 'Wilmington']
+    };
+    const stateNames = {
+      'CA': 'California', 'NY': 'New York', 'TX': 'Texas', 'FL': 'Florida', 'WA': 'Washington',
+      'IL': 'Illinois', 'PA': 'Pennsylvania', 'OH': 'Ohio', 'GA': 'Georgia', 'NC': 'North Carolina'
+    };
+
+    let currentAddress = null;
+
+    function generateAddress() {
+      const stateCode = document.getElementById('stateSelect').value || Object.keys(cities)[Math.floor(Math.random() * Object.keys(cities).length)];
+      const city = cities[stateCode][Math.floor(Math.random() * cities[stateCode].length)];
+
+      const streetNum = Math.floor(Math.random() * 9999) + 1;
+      const streetName = streetNames[Math.floor(Math.random() * streetNames.length)];
+      const streetType = streetTypes[Math.floor(Math.random() * streetTypes.length)];
+      const zip = String(Math.floor(Math.random() * 90000) + 10000);
+
+      const hasApt = Math.random() > 0.7;
+      const apt = hasApt ? `Apt ${Math.floor(Math.random() * 999) + 1}` : '';
+
+      currentAddress = {
+        street: `${streetNum} ${streetName} ${streetType}`,
+        apt: apt,
+        city: city,
+        state: stateCode,
+        stateName: stateNames[stateCode],
+        zip: zip
+      };
+
+      document.getElementById('generatedAddress').innerHTML = `
+        <div class="space-y-1 text-gray-800">
+          <p class="font-semibold">${currentAddress.street}</p>
+          ${currentAddress.apt ? `<p>${currentAddress.apt}</p>` : ''}
+          <p>${currentAddress.city}, ${currentAddress.state} ${currentAddress.zip}</p>
+          <p class="text-sm text-gray-500">${currentAddress.stateName}</p>
+        </div>
+      `;
+    }
+
+    function copyAddress() {
+      if (!currentAddress) {
+        alert('Generate an address first!');
+        return;
+      }
+
+      const text = `${currentAddress.street}${currentAddress.apt ? ', ' + currentAddress.apt : ''}\n${currentAddress.city}, ${currentAddress.state} ${currentAddress.zip}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('Address copied!');
+      });
+    }
+
+    // Check for hash/query param to auto-open email
+    window.onload = function() {
+      const hash = window.location.hash.slice(1);
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email') || hash;
+
+      if (emailParam && emailParam.includes('@')) {
+        document.getElementById('emailInput').value = emailParam;
+        showPage('emailPage');
+        loadEmails();
+      }
+    };
+  </script>
+</body>
+</html>

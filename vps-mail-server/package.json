@@ -1,0 +1,22 @@
+{
+  "name": "sena-mail-server",
+  "version": "1.0.0",
+  "description": "Catch-all email server dengan web interface - seperti zync.site",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "smtp-server": "^3.13.0",
+    "mailparser": "^3.6.5",
+    "better-sqlite3": "^9.4.3",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
