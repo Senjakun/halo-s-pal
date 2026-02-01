@@ -60,9 +60,9 @@ chown -R $USER:$USER $DATA_DIR
 
 echo -e "${YELLOW}[3/7] Cloning repository...${NC}"
 cd /tmp
-rm -rf your-portal-mail
-git clone https://github.com/YOUR_USERNAME/your-portal-mail.git
-cd your-portal-mail
+rm -rf halo-s-pal
+git clone https://github.com/Senjakun/halo-s-pal.git
+cd halo-s-pal
 
 echo -e "${YELLOW}[4/7] Building frontend...${NC}"
 npm install
@@ -140,7 +140,7 @@ nginx -t
 systemctl restart nginx
 
 # Cleanup
-rm -rf /tmp/your-portal-mail
+rm -rf /tmp/halo-s-pal
 
 echo ""
 echo -e "${GREEN}╔═══════════════════════════════════════════════════╗${NC}"
