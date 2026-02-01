@@ -3,6 +3,7 @@
 # ============================================
 # SENA MAIL SERVER - AUTO INSTALLER
 # For Ubuntu 22.04 LTS
+# Usage: curl ... | sudo bash -s -- -d example.com
 # ============================================
 
 set -e
@@ -15,6 +16,37 @@ BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
+
+# Default values
+PRIMARY_DOMAIN=""
+SITE_NAME="Sena Hub"
+AUTHOR_NAME="Sena"
+AUTO_CONFIRM=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -d|--domain)
+      PRIMARY_DOMAIN="$2"
+      shift 2
+      ;;
+    -n|--name)
+      SITE_NAME="$2"
+      shift 2
+      ;;
+    -a|--author)
+      AUTHOR_NAME="$2"
+      shift 2
+      ;;
+    -y|--yes)
+      AUTO_CONFIRM=true
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 echo -e "${PURPLE}"
 echo "╔═══════════════════════════════════════════╗"
@@ -29,21 +61,30 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Get user input
+# Get user input if not provided via arguments
 echo -e "${CYAN}📝 Configuration${NC}"
 echo ""
 
-read -p "🌐 Enter primary domain for web access (e.g., example.com): " PRIMARY_DOMAIN
+# Only prompt if running interactively AND domain not provided
 if [ -z "$PRIMARY_DOMAIN" ]; then
-  echo -e "${RED}❌ Primary domain is required for Nginx!${NC}"
-  exit 1
+  if [ -t 0 ]; then
+    read -p "🌐 Enter primary domain for web access (e.g., example.com): " PRIMARY_DOMAIN
+  fi
+  if [ -z "$PRIMARY_DOMAIN" ]; then
+    echo -e "${RED}❌ Primary domain is required!${NC}"
+    echo -e "${YELLOW}Usage: curl ... | sudo bash -s -- -d yourdomain.com${NC}"
+    echo -e "${YELLOW}   Or: sudo bash install.sh -d yourdomain.com${NC}"
+    exit 1
+  fi
 fi
 
-read -p "✨ Enter website name (e.g., My Mail Hub) [default: Sena Hub]: " SITE_NAME
-SITE_NAME=${SITE_NAME:-"Sena Hub"}
+if [ -t 0 ] && [ "$AUTO_CONFIRM" = false ]; then
+  read -p "✨ Enter website name [default: $SITE_NAME]: " INPUT_SITE_NAME
+  SITE_NAME=${INPUT_SITE_NAME:-$SITE_NAME}
 
-read -p "👤 Enter your name for credits [default: Sena]: " AUTHOR_NAME
-AUTHOR_NAME=${AUTHOR_NAME:-"Sena"}
+  read -p "👤 Enter your name for credits [default: $AUTHOR_NAME]: " INPUT_AUTHOR_NAME
+  AUTHOR_NAME=${INPUT_AUTHOR_NAME:-$AUTHOR_NAME}
+fi
 
 echo ""
 echo -e "${YELLOW}📋 Configuration Summary:${NC}"
@@ -53,10 +94,14 @@ echo -e "   Site Name: ${GREEN}$SITE_NAME${NC}"
 echo -e "   Author: ${GREEN}$AUTHOR_NAME${NC}"
 echo ""
 
-read -p "Continue with installation? (y/n): " CONFIRM
-if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
-  echo -e "${RED}Installation cancelled.${NC}"
-  exit 0
+if [ -t 0 ] && [ "$AUTO_CONFIRM" = false ]; then
+  read -p "Continue with installation? (y/n): " CONFIRM
+  if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+    echo -e "${RED}Installation cancelled.${NC}"
+    exit 0
+  fi
+else
+  echo -e "${CYAN}Running in non-interactive mode...${NC}"
 fi
 
 echo ""
