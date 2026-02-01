@@ -34,6 +34,52 @@ fi
 INSTALL_DIR="/opt/temp-mail"
 DATA_DIR="/var/lib/temp-mail"
 USER="tempmail"
+DOMAIN=""
+SETUP_SSL=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -d|--domain)
+            DOMAIN="$2"
+            shift 2
+            ;;
+        --ssl)
+            SETUP_SSL=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Interactive domain input if not provided via argument
+if [ -z "$DOMAIN" ]; then
+    echo ""
+    echo -e "${YELLOW}Domain Setup (Optional)${NC}"
+    echo -e "Enter your domain name (e.g., mail.example.com)"
+    echo -e "Press Enter to skip and use IP address only"
+    echo -n "Domain: "
+    read -r DOMAIN
+    
+    if [ -n "$DOMAIN" ]; then
+        echo -n "Setup SSL with Let's Encrypt? (y/N): "
+        read -r ssl_answer
+        if [[ "$ssl_answer" =~ ^[Yy]$ ]]; then
+            SETUP_SSL=true
+        fi
+    fi
+fi
+
+echo ""
+if [ -n "$DOMAIN" ]; then
+    echo -e "${GREEN}Domain: $DOMAIN${NC}"
+    echo -e "${GREEN}SSL: $([ "$SETUP_SSL" = true ] && echo "Yes" || echo "No")${NC}"
+else
+    echo -e "${YELLOW}No domain configured - will use IP address${NC}"
+fi
+echo ""
 
 # Function to wait for apt locks
 wait_for_apt_lock() {
@@ -209,21 +255,29 @@ pm2 save
 pm2 startup
 
 echo -e "${YELLOW}Setting up Nginx...${NC}"
+
+# Determine server_name for nginx
+if [ -n "$DOMAIN" ]; then
+    NGINX_SERVER_NAME="$DOMAIN www.$DOMAIN"
+else
+    NGINX_SERVER_NAME="_"
+fi
+
 # Create nginx config
-cat > /etc/nginx/sites-available/temp-mail << 'EOF'
+cat > /etc/nginx/sites-available/temp-mail << EOF
 server {
     listen 80;
-    server_name _;
+    server_name $NGINX_SERVER_NAME;
 
     location / {
         proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_cache_bypass $http_upgrade;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_cache_bypass \$http_upgrade;
     }
 }
 EOF
@@ -236,6 +290,21 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 
+# Setup SSL with Certbot if requested
+if [ "$SETUP_SSL" = true ] && [ -n "$DOMAIN" ]; then
+    echo -e "${YELLOW}Setting up SSL with Let's Encrypt...${NC}"
+    
+    # Install certbot
+    apt_install certbot python3-certbot-nginx
+    
+    # Run certbot
+    echo -e "${YELLOW}Requesting SSL certificate for $DOMAIN...${NC}"
+    certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email || {
+        echo -e "${YELLOW}Auto SSL failed. You can run manually later:${NC}"
+        echo -e "${YELLOW}  certbot --nginx -d $DOMAIN -d www.$DOMAIN${NC}"
+    }
+fi
+
 # Cleanup
 rm -rf /tmp/halo-s-pal
 
@@ -246,13 +315,27 @@ echo -e "${GREEN}╠════════════════════
 echo -e "${GREEN}║                                                   ║${NC}"
 echo -e "${GREEN}║  📧 Your Temporary Mail is ready!                 ║${NC}"
 echo -e "${GREEN}║                                                   ║${NC}"
-echo -e "${GREEN}║  🌐 Access: http://YOUR_SERVER_IP                 ║${NC}"
+
+if [ -n "$DOMAIN" ]; then
+    if [ "$SETUP_SSL" = true ]; then
+        echo -e "${GREEN}║  🌐 Access: https://$DOMAIN${NC}"
+    else
+        echo -e "${GREEN}║  🌐 Access: http://$DOMAIN${NC}"
+    fi
+else
+    echo -e "${GREEN}║  🌐 Access: http://YOUR_SERVER_IP                 ║${NC}"
+fi
+
 echo -e "${GREEN}║  📁 Data: $DATA_DIR                    ║${NC}"
 echo -e "${GREEN}║  📊 Logs: pm2 logs temp-mail                      ║${NC}"
 echo -e "${GREEN}║                                                   ║${NC}"
-echo -e "${GREEN}║  🔒 For SSL, run:                                 ║${NC}"
-echo -e "${GREEN}║  certbot --nginx -d yourdomain.com                ║${NC}"
-echo -e "${GREEN}║                                                   ║${NC}"
+
+if [ -z "$DOMAIN" ] || [ "$SETUP_SSL" = false ]; then
+    echo -e "${GREEN}║  🔒 For SSL, run:                                 ║${NC}"
+    echo -e "${GREEN}║  certbot --nginx -d yourdomain.com                ║${NC}"
+    echo -e "${GREEN}║                                                   ║${NC}"
+fi
+
 echo -e "${GREEN}╚═══════════════════════════════════════════════════╝${NC}"
 echo ""
 
