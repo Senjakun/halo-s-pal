@@ -109,12 +109,77 @@ sudo apt install certbot python3-certbot-nginx
 sudo certbot --nginx -d mail.yourdomain.com
 ```
 
-## 📝 One-Line Install Script
+## 🚀 One-Line Install (Recommended)
 
-Jalankan ini di VPS baru:
+Cukup jalankan satu command ini di VPS baru:
+
+### Instalasi dengan Domain + SSL (Recommended)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/YOUR_USERNAME/your-portal-mail/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh | sudo bash -s -- -d yourdomain.com --ssl
+```
+
+Ganti `yourdomain.com` dengan domain kamu. Pastikan A Record sudah diarahkan ke IP VPS.
+
+### Instalasi Tanpa Domain (IP Only)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh | sudo bash
+```
+
+Akses via `http://IP_VPS_KAMU`
+
+### Instalasi Interactive (Download Dulu)
+
+Kalau mau ditanya domain secara interaktif:
+
+```bash
+wget https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh
+sudo bash install.sh
+```
+
+### Parameter yang Tersedia
+
+| Parameter | Contoh | Keterangan |
+|-----------|--------|------------|
+| `-d` atau `--domain` | `-d mail.example.com` | Set domain untuk Nginx |
+| `--ssl` | `--ssl` | Auto setup SSL dengan Certbot |
+
+### Contoh Lengkap
+
+```bash
+# Domain + SSL
+curl -fsSL https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh | sudo bash -s -- -d mail.example.com --ssl
+
+# Domain tanpa SSL (setup SSL manual nanti)
+curl -fsSL https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh | sudo bash -s -- -d mail.example.com
+
+# Tanpa domain (akses via IP)
+curl -fsSL https://raw.githubusercontent.com/Senjakun/halo-s-pal/main/install.sh | sudo bash
+```
+
+### Setelah Install
+
+- **Dengan domain + SSL**: Akses `https://yourdomain.com`
+- **Dengan domain tanpa SSL**: Akses `http://yourdomain.com`
+- **Tanpa domain**: Akses `http://IP_VPS`
+
+### Update Domain (Tanpa Reinstall)
+
+Kalau sudah install tapi mau ganti/tambah domain:
+
+```bash
+# Edit nginx config
+sudo nano /etc/nginx/sites-available/temp-mail
+
+# Ganti "server_name _;" menjadi:
+# server_name yourdomain.com www.yourdomain.com;
+
+# Restart nginx
+sudo nginx -t && sudo systemctl restart nginx
+
+# Setup SSL
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ```
 
 ## ⚙️ Environment Variables
